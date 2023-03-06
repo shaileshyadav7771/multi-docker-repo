@@ -1,0 +1,27 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t shailesh/react-test -f ./client/Dockerfile.dev ./client
+
+
+script: 
+  - docker run shailesh/react-test npm test -- --coverage
+
+
+after_success:
+  - docker build -t shailesh/multi-client ./client
+  - docker build -t shailesh/multi-nginx ./nginx
+  - docker build -t shailesh/multi-derver ./server
+  - docker build -t shailesh/multi-worker ./worker
+  
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$Docker_ID" --password-stdin
+  
+  # Take those images and push them to docker hub..
+  - docker push shailesh/multi-client
+  - docker push shailesh/multi-worker
+  - docker push shailesh/multi-nginx
+  - docker push shailesh/multi-server
+  
